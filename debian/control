@@ -1,0 +1,55 @@
+Source: threadserver
+Priority: extra
+Maintainer: Eduard Veleba <eduard.veleba@ideacomplete.cz>
+Build-Depends: debhelper (>= 7), autotools-dev
+Standards-Version: 3.7.3
+Section: libs
+
+Package: threadserver
+Section: admin
+Architecture: any
+Depends: libthreadserver1 (= ${binary:Version})
+Description: Thread Server
+ Thread Server
+
+Package: libthreadserver-dev
+Section: libdevel
+Architecture: any
+Depends: libthreadserver1 (= ${binary:Version})
+Description: Thread Server library
+ Thread Server library
+
+Package: libthreadserver1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Thread Server library
+ Thread Server library
+
+Package: libthreadserver-handler-cpp-frpc-dev
+Section: libdevel
+Architecture: any
+Depends: libthreadserver1-handler-cpp-frpc (= ${binary:Version})
+Description: Thread Server C++ FastRPC handler
+ Thread Server C++ FastRPC handler
+
+Package: libthreadserver1-handler-cpp-frpc
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Thread Server C++ FastRPC handler
+ Thread Server C++ FastRPC handler
+
+Package: libthreadserver-handler-cpp-http-dev
+Section: libdevel
+Architecture: any
+Depends: libthreadserver1-handler-cpp-http (= ${binary:Version})
+Description: Thread Server C++ HTTP handler
+ Thread Server C++ HTTP handler
+
+Package: libthreadserver1-handler-cpp-http
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Thread Server C++ HTTP handler
+ Thread Server C++ HTTP handler

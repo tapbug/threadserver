@@ -1,0 +1,4 @@
+usr/include/threadserver/handlers/cppfrpchandler/*.h
+usr/lib/threadserver/handlers/cppfrpchandler.a
+usr/lib/threadserver/handlers/cppfrpchandler.so
+usr/lib/threadserver/handlers/cppfrpchandler.la

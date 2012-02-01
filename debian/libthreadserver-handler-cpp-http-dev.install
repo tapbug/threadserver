@@ -1,0 +1,4 @@
+usr/include/threadserver/handlers/cpphttphandler/*.h
+usr/lib/threadserver/handlers/cpphttphandler.a
+usr/lib/threadserver/handlers/cpphttphandler.so
+usr/lib/threadserver/handlers/cpphttphandler.la
