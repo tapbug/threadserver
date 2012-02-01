@@ -2,7 +2,7 @@ threadserver (0.0.8) unstable; urgency=low
 
   * Added dontLog flag to Response_t
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Mon, 30 Jan 2012 17:05:25 +0100
+ -- Eduard Veleba <veleba@novalighting.cz>  Mon, 30 Jan 2012 17:05:25 +0100
 
 threadserver (0.0.7) unstable; urgency=low
 
@@ -11,41 +11,41 @@ threadserver (0.0.7) unstable; urgency=low
   * Improved listener performance
   * Added Job_t helper
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Mon, 23 Jan 2012 18:35:11 +0100
+ -- Eduard Veleba <veleba@novalighting.cz>  Mon, 23 Jan 2012 18:35:11 +0100
 
 threadserver (0.0.6) unstable; urgency=low
 
   * Keepalive
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Sat, 02 Oct 2010 14:56:49 +0200
+ -- Eduard Veleba <veleba@novalighting.cz>  Sat, 02 Oct 2010 14:56:49 +0200
 
 threadserver (0.0.5) unstable; urgency=low
 
   * Added getIoService() function to server
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Mon, 10 May 2010 12:47:51 +0200
+ -- Eduard Veleba <veleba@novalighting.cz>  Mon, 10 May 2010 12:47:51 +0200
 
 threadserver (0.0.4) unstable; urgency=low
 
   * Better formating in vararg exceptions
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Thu, 15 Apr 2010 14:16:26 +0200
+ -- Eduard Veleba <veleba@novalighting.cz>  Thu, 15 Apr 2010 14:16:26 +0200
 
 threadserver (0.0.3) unstable; urgency=low
 
   * Bugfix
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Tue, 13 Apr 2010 14:28:31 +0200
+ -- Eduard Veleba <veleba@novalighting.cz>  Tue, 13 Apr 2010 14:28:31 +0200
 
 threadserver (0.0.2) unstable; urgency=low
 
   * Fixed vararg exceptions
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Tue, 13 Apr 2010 13:36:59 +0200
+ -- Eduard Veleba <veleba@novalighting.cz>  Tue, 13 Apr 2010 13:36:59 +0200
 
 threadserver (0.0.1) unstable; urgency=low
 
   * Initial release
 
- -- Eduard Veleba <eduard.veleba@ideacomplete.cz>  Tue, 16 Feb 2010 19:36:50 +0000
+ -- Eduard Veleba <veleba@novalighting.cz>  Tue, 16 Feb 2010 19:36:50 +0000
 

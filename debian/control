@@ -1,6 +1,6 @@
 Source: threadserver
 Priority: extra
-Maintainer: Eduard Veleba <eduard.veleba@ideacomplete.cz>
+Maintainer: Eduard Veleba <veleba@novalighting.cz>
 Build-Depends: debhelper (>= 7), autotools-dev
 Standards-Version: 3.7.3
 Section: libs
