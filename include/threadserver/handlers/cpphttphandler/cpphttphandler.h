@@ -177,6 +177,55 @@ public:
     }
 
     template<class Object_t>
+    class HttpMethod_t : public Method_t {
+    public:
+        typedef void (Object_t::*Handler_t)(const Request_t &request,
+                                            Response_t &response,
+                                            const Parameters_t &parameters);
+
+        HttpMethod_t(Object_t &object, Handler_t handler)
+          : Method_t(),
+            object(object),
+            handler(handler)
+        {
+        }
+
+        virtual ~HttpMethod_t()
+        {
+        }
+
+        virtual void call(const Request_t &request, Response_t &response)
+        {
+            Parameters_t params;
+            size_t pos(request.unparsedUri.find("?"));
+            size_t pos2(request.unparsedUri.find("#"));
+            if (pos != std::string::npos) {
+                if (pos2 != std::string::npos) {
+                    if (pos2 > pos) {
+                        params.parse(request.unparsedUri.substr(pos+1, pos2));
+                    }
+                } else {
+                    params.parse(request.unparsedUri.substr(pos+1));
+                }
+            }
+            if (request.method == "POST") {
+                params.parse(request.data);
+            }
+            (object.*handler)(request, response, params);
+        }
+
+    private:
+        Object_t &object;
+        Handler_t handler;
+    };
+
+    template<class Object_t>
+    static HttpMethod_t<Object_t>* httpMethod(typename HttpMethod_t<Object_t>::Handler_t handler, Object_t &object)
+    {
+        return new HttpMethod_t<Object_t>(object, handler);
+    }
+
+    template<class Object_t>
     class JsonMethod_t : public Method_t {
     public:
         typedef JSON::Value_t& (Object_t::*Handler_t)(JSON::Pool_t &pool,

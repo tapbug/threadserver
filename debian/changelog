@@ -1,3 +1,9 @@
+threadserver (0.0.9) unstable; urgency=low
+
+  * Added HttpMethod_t
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Sat, 04 Feb 2012 00:47:05 +0100
+
 threadserver (0.0.8) unstable; urgency=low
 
   * Added dontLog flag to Response_t
