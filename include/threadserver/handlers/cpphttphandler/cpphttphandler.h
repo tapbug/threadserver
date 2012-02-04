@@ -216,6 +216,8 @@ public:
             } catch (const HttpError_t &e) {
                 if (e.code() / 100 >= 4) {
                     throw e;
+                } else {
+                    response.status = e.code();
                 }
             }
         }
@@ -284,6 +286,8 @@ public:
             } catch (const HttpError_t &e) {
                 if (e.code() / 100 >= 4) {
                     throw e;
+                } else {
+                    response.status = e.code();
                 }
             }
         }
