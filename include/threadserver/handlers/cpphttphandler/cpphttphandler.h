@@ -211,7 +211,13 @@ public:
             if (request.method == "POST") {
                 params.parse(request.data);
             }
-            (object.*handler)(request, response, params);
+            try {
+                (object.*handler)(request, response, params);
+            } catch (const HttpError_t &e) {
+                if (e.code() / 100 >= 4) {
+                    throw e;
+                }
+            }
         }
 
     private:
@@ -263,15 +269,21 @@ public:
             }
             response.contentType = "application/json; charset=utf-8";
             JSON::Pool_t pool;
-            JSON::Value_t &result((object.*handler)(pool, request, response, params));
-            response.data = std::string(result);
-            if (logCheckLevel(DBG1)) {
-                if (response.debugLogInfo.empty()) {
-                    LOG(DBG1, "Response:\n%s\n",
-                        response.data.c_str());
-                } else {
-                    LOG(DBG1, "[%s] Response:\n%s\n",
-                        response.debugLogInfo.c_str(), response.data.c_str());
+            try {
+                JSON::Value_t &result((object.*handler)(pool, request, response, params));
+                response.data = std::string(result);
+                if (logCheckLevel(DBG1)) {
+                    if (response.debugLogInfo.empty()) {
+                        LOG(DBG1, "Response:\n%s\n",
+                            response.data.c_str());
+                    } else {
+                        LOG(DBG1, "[%s] Response:\n%s\n",
+                            response.debugLogInfo.c_str(), response.data.c_str());
+                    }
+                }
+            } catch (const HttpError_t &e) {
+                if (e.code() / 100 >= 4) {
+                    throw e;
                 }
             }
         }
