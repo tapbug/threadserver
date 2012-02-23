@@ -1,6 +1,7 @@
 
 #include <dbglog.h>
 #include <dlfcn.h>
+#include <sys/resource.h>
 #include <sys/wait.h>
 #include <fstream>
 #include <boost/bind.hpp>
@@ -20,6 +21,12 @@ ThreadServer_t::ThreadServer_t(int argc, char **argv)
     work(0),
     ioServiceThread(0)
 {
+    // enable core dumps
+    struct rlimit rlim;
+    rlim.rlim_cur = RLIM_INFINITY;
+    rlim.rlim_max = RLIM_INFINITY;
+    setrlimit(RLIMIT_CORE, &rlim);
+
     registerHandlers();
     registerListeners();
     if (!configuration.pidFile.empty() && !configuration.nodetach) {

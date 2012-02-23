@@ -1,3 +1,10 @@
+threadserver (0.0.14) unstable; urgency=low
+
+  * Added -ggdb3 (to allow easier debugging)
+  * Enabled core dumping
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Thu, 23 Feb 2012 17:27:51 +0100
+
 threadserver (0.0.13) unstable; urgency=low
 
   * Guard process not doesn't just fork but also calls execv to start

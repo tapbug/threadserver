@@ -1,5 +1,5 @@
 
-AM_CXXFLAGS = -Werror -Wall -O2 -D_FILE_OFFSET_BITS=64 -fPIC -g ${CXXEXTRAFLAGS} -I../../../include
+AM_CXXFLAGS = -Werror -Wall -O2 -D_FILE_OFFSET_BITS=64 -fPIC -g -ggdb3 ${CXXEXTRAFLAGS} -I../../../include
 
 handlerdir = $(prefix)/lib/threadserver/handlers
 
