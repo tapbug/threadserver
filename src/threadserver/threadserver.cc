@@ -22,7 +22,7 @@ ThreadServer_t::ThreadServer_t(int argc, char **argv)
 {
     registerHandlers();
     registerListeners();
-    if (!configuration.pidFile.empty()) {
+    if (!configuration.pidFile.empty() && !configuration.nodetach) {
         std::ofstream pidFileStream;
         pidFileStream.open(configuration.pidFile.c_str(), std::ios_base::out | std::ios_base::app);
         if (!pidFileStream.is_open()) {
@@ -54,7 +54,16 @@ ThreadServer_t::ThreadServer_t(int argc, char **argv)
                 }
                 if (!pid) {
                     childPid = 0;
-                    break;
+                    const char *d = "-d";
+                    const char *args[argc+2];
+                    for (int i(0) ; i < argc ; ++i) {
+                        args[i] = argv[i];
+                    }
+                    args[argc] = d;
+                    args[argc+1] = 0;
+                    if (execv(argv[0], const_cast<char * const *>(args))) {
+                        throw Error_t("Can't execv(): %s", strerror(errno));
+                    }
                 }
                 childPid = pid;
             }
@@ -76,16 +85,6 @@ ThreadServer_t::ThreadServer_t(int argc, char **argv)
                 }
             }
             exit(WEXITSTATUS(status));
-        }
-    } else {
-        if (!configuration.pidFile.empty()) {
-            std::ofstream pidFileStream;
-            pidFileStream.open(configuration.pidFile.c_str());
-            if (!pidFileStream.is_open()) {
-                throw Error_t("Can't open pidfile %s", configuration.pidFile.c_str());
-            }
-            pidFileStream << getpid() << std::endl;
-            pidFileStream.close();
         }
     }
 

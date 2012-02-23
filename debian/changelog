@@ -1,3 +1,17 @@
+threadserver (0.0.13) unstable; urgency=low
+
+  * Guard process not doesn't just fork but also calls execv to start
+    brand new server process with additional parameter -d
+  * Server now doesn't create pidfile in nodetach mode
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Thu, 23 Feb 2012 14:30:25 +0100
+
+threadserver (0.0.12) unstable; urgency=low
+
+  * Fixed C++ HTTP handler method registry
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Sat, 04 Feb 2012 17:28:29 +0100
+
 threadserver (0.0.11) unstable; urgency=low
 
   * Fixed reponse status for HttpError_t with code < 400

@@ -25,7 +25,7 @@ CppHttpHandler_t::CppHttpHandler_t(ThreadServer_t *threadServer,
     module(0),
     work(0),
     maxRequestSize(threadServer->configuration.get<int>(name + ".MaxRequestSize", 1024*1024)),
-    methodRegistry()
+    methodRegistry(0)
 {
     std::string module(threadServer->configuration.get<std::string>(name + ".Module"));
     size_t pos(module.find(":"));
@@ -54,12 +54,17 @@ CppHttpHandler_t::Worker_t::Worker_t(CppHttpHandler_t *handler)
   : Handler_t::Worker_t(handler),
     handler(handler)
 {
+    handler->methodRegistry.reset(
+        new std::list<std::pair<boost::regex, Method_t*> >());
+
     handler->module->threadCreate();
 }
 
 CppHttpHandler_t::Worker_t::~Worker_t()
 {
     handler->module->threadDestroy();
+
+    delete handler->methodRegistry.release();
 }
 
 namespace {
@@ -171,8 +176,8 @@ void CppHttpHandler_t::Worker_t::handle(boost::shared_ptr<SocketWork_t> socket)
         response.contentType = "text/plain";
 
         std::list<std::pair<boost::regex, Method_t*> >::const_iterator imethodRegistry;
-        for (imethodRegistry = handler->methodRegistry.begin() ;
-             imethodRegistry != handler->methodRegistry.end() ;
+        for (imethodRegistry = handler->methodRegistry->begin() ;
+             imethodRegistry != handler->methodRegistry->end() ;
              ++imethodRegistry) {
 
             boost::cmatch matches;
@@ -184,7 +189,7 @@ void CppHttpHandler_t::Worker_t::handle(boost::shared_ptr<SocketWork_t> socket)
             }
         }
 
-        if (imethodRegistry != handler->methodRegistry.end()) {
+        if (imethodRegistry != handler->methodRegistry->end()) {
             try {
                 imethodRegistry->second->call(request, response);
                 response.headers.set("Content-Type", response.contentType);
@@ -467,7 +472,7 @@ CppHttpHandler_t::Method_t::~Method_t()
 void CppHttpHandler_t::registerMethod(const std::string &location,
                                       CppHttpHandler_t::Method_t *method)
 {
-    methodRegistry.push_back(
+    methodRegistry->push_back(
         std::make_pair(
             boost::regex(location),
             method));

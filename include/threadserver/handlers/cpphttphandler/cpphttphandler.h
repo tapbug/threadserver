@@ -342,7 +342,7 @@ private:
     std::auto_ptr<Module_t> module;
     boost::thread_specific_ptr<SocketWork_t> work;
     int maxRequestSize;
-    std::list<std::pair<boost::regex, Method_t*> > methodRegistry;
+    boost::thread_specific_ptr<std::list<std::pair<boost::regex, Method_t*> > > methodRegistry;
 };
 
 } // namespace ThreadServer
