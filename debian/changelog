@@ -1,3 +1,9 @@
+threadserver (0.0.15) unstable; urgency=low
+
+  * Fixed JSON escaping
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Tue, 10 Apr 2012 23:29:00 +0200
+
 threadserver (0.0.14) unstable; urgency=low
 
   * Added -ggdb3 (to allow easier debugging)

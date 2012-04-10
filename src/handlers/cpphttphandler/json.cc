@@ -48,10 +48,22 @@ std::string String_t::escape(const std::string &s)
 {
     std::string result("\"");
     for (size_t i(0) ; i < s.size() ; ++i) {
-        if (s[i] == '"' || s[i] == '\\') {
-            result.push_back('\\');
+        if (s[i] == '\n') {
+            result.append("\\n");
+        } else if (s[i] == '\r') {
+            result.append("\\r");
+        } else if (s[i] == '\b') {
+            result.append("\\b");
+        } else if (s[i] == '\f') {
+            result.append("\\f");
+        } else if (s[i] == '\t') {
+            result.append("\\t");
+        } else {
+            if (s[i] == '"' || s[i] == '\\' || s[i] == '/') {
+                result.push_back('\\');
+            }
+            result.push_back(s[i]);
         }
-        result.push_back(s[i]);
     }
     result.push_back('"');
     return result;
