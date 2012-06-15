@@ -115,6 +115,10 @@ AC_LANG_CPLUSPLUS
 TEST_HEADER(frpc.h)
 TEST_LIB(fastrpc, _ZN4FRPC8Server_tD0Ev)
 
+AC_LANG_CPLUSPLUS
+TEST_HEADER(mimetic/mimetic.h)
+TEST_LIB(mimetic, _ZN7mimetic10MimeEntityD1Ev)
+
 AC_SUBST(CXXEXTRAFLAGS)
 
 AC_OUTPUT( \

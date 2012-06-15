@@ -135,6 +135,30 @@ public:
         Data_t data;
     };
 
+    class MimeParameters_t : public Parameters_t {
+    public:
+        class File_t {
+        public:
+            File_t();
+
+            std::string data;
+            std::string contentType;
+            std::string filename;
+        };
+
+        typedef std::map<std::string, std::vector<File_t> > FileData_t;
+
+        MimeParameters_t();
+
+        void parseMime(const std::string &params);
+
+        const std::vector<File_t>& getFiles(const std::string &name) const;
+
+    protected:
+        FileData_t fileData;
+        const std::vector<File_t> empty;
+    };
+
     class Method_t {
     public:
         Method_t();
@@ -234,6 +258,67 @@ public:
     }
 
     template<class Object_t>
+    class HttpMethod2_t : public Method_t {
+    public:
+        typedef void (Object_t::*Handler_t)(const Request_t &request,
+                                            Response_t &response,
+                                            const MimeParameters_t &parameters);
+
+        HttpMethod2_t(Object_t &object, Handler_t handler)
+          : Method_t(),
+            object(object),
+            handler(handler)
+        {
+        }
+
+        virtual ~HttpMethod2_t()
+        {
+        }
+
+        virtual void call(const Request_t &request, Response_t &response)
+        {
+            MimeParameters_t params;
+            size_t pos(request.unparsedUri.find("?"));
+            size_t pos2(request.unparsedUri.find("#"));
+            if (pos != std::string::npos) {
+                if (pos2 != std::string::npos) {
+                    if (pos2 > pos) {
+                        params.parse(request.unparsedUri.substr(pos+1, pos2));
+                    }
+                } else {
+                    params.parse(request.unparsedUri.substr(pos+1));
+                }
+            }
+            if (request.method == "POST") {
+                if (request.contentType.find("multipart/form-data") == 0) {
+                    params.parseMime("Content-Type: " + request.contentType + "\r\n\r\n" + request.data);
+                } else {
+                    params.parse(request.data);
+                }
+            }
+            try {
+                (object.*handler)(request, response, params);
+            } catch (const HttpError_t &e) {
+                if (e.code() / 100 >= 4) {
+                    throw e;
+                } else {
+                    response.status = e.code();
+                }
+            }
+        }
+
+    private:
+        Object_t &object;
+        Handler_t handler;
+    };
+
+    template<class Object_t>
+    static HttpMethod2_t<Object_t>* httpMethod2(typename HttpMethod2_t<Object_t>::Handler_t handler, Object_t &object)
+    {
+        return new HttpMethod2_t<Object_t>(object, handler);
+    }
+
+    template<class Object_t>
     class JsonMethod_t : public Method_t {
     public:
         typedef JSON::Value_t& (Object_t::*Handler_t)(JSON::Pool_t &pool,
@@ -301,6 +386,80 @@ public:
     static JsonMethod_t<Object_t>* jsonMethod(typename JsonMethod_t<Object_t>::Handler_t handler, Object_t &object)
     {
         return new JsonMethod_t<Object_t>(object, handler);
+    }
+
+    template<class Object_t>
+    class JsonMethod2_t : public Method_t {
+    public:
+        typedef JSON::Value_t& (Object_t::*Handler_t)(JSON::Pool_t &pool,
+                                                      const Request_t &request,
+                                                      Response_t &response,
+                                                      const MimeParameters_t &parameters);
+
+        JsonMethod2_t(Object_t &object, Handler_t handler)
+          : Method_t(),
+            object(object),
+            handler(handler)
+        {
+        }
+
+        virtual ~JsonMethod2_t()
+        {
+        }
+
+        virtual void call(const Request_t &request, Response_t &response)
+        {
+            MimeParameters_t params;
+            size_t pos(request.unparsedUri.find("?"));
+            size_t pos2(request.unparsedUri.find("#"));
+            if (pos != std::string::npos) {
+                if (pos2 != std::string::npos) {
+                    if (pos2 > pos) {
+                        params.parse(request.unparsedUri.substr(pos+1, pos2));
+                    }
+                } else {
+                    params.parse(request.unparsedUri.substr(pos+1));
+                }
+            }
+            if (request.method == "POST") {
+                if (request.contentType.find("multipart/form-data") == 0) {
+                    params.parseMime("Content-Type: " + request.contentType + "\r\n\r\n" + request.data);
+                } else {
+                    params.parse(request.data);
+                }
+            }
+            response.contentType = "application/json; charset=utf-8";
+            JSON::Pool_t pool;
+            try {
+                JSON::Value_t &result((object.*handler)(pool, request, response, params));
+                response.data = std::string(result);
+                if (logCheckLevel(DBG1)) {
+                    if (response.debugLogInfo.empty()) {
+                        LOG(DBG1, "Response:\n%s\n",
+                            response.data.c_str());
+                    } else {
+                        LOG(DBG1, "[%s] Response:\n%s\n",
+                            response.debugLogInfo.c_str(), response.data.c_str());
+                    }
+                }
+            } catch (const HttpError_t &e) {
+                if (e.code() / 100 >= 4) {
+                    throw e;
+                } else {
+                    response.status = e.code();
+                }
+            }
+        }
+
+    private:
+        Object_t &object;
+        Handler_t handler;
+    };
+
+    template<class Object_t>
+    static JsonMethod2_t<Object_t>* jsonMethod2(typename JsonMethod2_t<Object_t>::Handler_t handler, Object_t &object)
+    {
+        return new JsonMethod2_t<Object_t>(object, handler);
     }
 
     CppHttpHandler_t(ThreadServer_t *threadServer,

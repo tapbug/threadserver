@@ -15,6 +15,8 @@
 #include <threadserver/error.h>
 #include <threadserver/handlers/cpphttphandler/cpphttphandler.h>
 
+#include <mimetic/mimetic.h>
+
 namespace ThreadServer {
 
 CppHttpHandler_t::CppHttpHandler_t(ThreadServer_t *threadServer,
@@ -532,6 +534,82 @@ std::string CppHttpHandler_t::Parameters_t::unescape(const std::string &s)
         }
     }
     return result;
+}
+
+CppHttpHandler_t::MimeParameters_t::File_t::File_t()
+  : data(),
+    contentType(),
+    filename()
+{
+}
+
+CppHttpHandler_t::MimeParameters_t::MimeParameters_t()
+  : CppHttpHandler_t::Parameters_t(),
+    fileData()
+{
+}
+
+void CppHttpHandler_t::MimeParameters_t::parseMime(const std::string &params)
+{
+    mimetic::NullCodec nullDecoder;
+    mimetic::Base64::Decoder base64Decoder;
+    mimetic::QP::Decoder qpDecoder;
+
+    mimetic::MimeEntity mimeMessage(params.begin(), params.end());
+    mimetic::MimeEntityList &parts(mimeMessage.body().parts());
+    for (mimetic::MimeEntityList::iterator iparts(parts.begin()) ;
+         iparts != parts.end() ;
+         ++iparts) {
+
+        File_t file;
+        std::string name;
+
+        mimetic::MimeEntity &part(**iparts);
+
+        mimetic::Header &header(part.header());
+
+        mimetic::ContentType &contentType(header.contentType());
+        file.contentType = contentType.type() + "/" + contentType.subtype();
+
+        mimetic::ContentDisposition &contentDisposition(header.contentDisposition());
+        mimetic::ContentDisposition::ParamList &params(contentDisposition.paramList());
+        for (mimetic::ContentDisposition::ParamList::const_iterator iparams(params.begin()) ;
+             iparams != params.end() ;
+             ++iparams) {
+
+            const mimetic::istring &key(iparams->name());
+            if (key == "name") {
+                name = iparams->value();
+            } else if (key == "filename") {
+                file.filename = iparams->value();
+            }
+        }
+
+        mimetic::Body &body(part.body());
+        if (header.contentTransferEncoding().mechanism() == base64Decoder.name()) {
+            mimetic::code(body.begin(), body.end(), base64Decoder, std::back_inserter(file.data));
+        } else if (header.contentTransferEncoding().mechanism() == qpDecoder.name()) {
+            mimetic::code(body.begin(), body.end(), qpDecoder, std::back_inserter(file.data));
+        } else {
+            mimetic::code(body.begin(), body.end(), nullDecoder, std::back_inserter(file.data));
+        }
+
+        if (file.filename.empty() && file.contentType == "/") {
+            data[name].push_back(file.data);
+        } else {
+            fileData[name].push_back(file);
+        }
+    }
+}
+
+const std::vector<CppHttpHandler_t::MimeParameters_t::File_t>& CppHttpHandler_t::MimeParameters_t::getFiles(const std::string &name) const
+{
+    FileData_t::const_iterator ifileData(fileData.find(name));
+    if (ifileData == fileData.end()) {
+        return empty;
+    } else {
+        return ifileData->second;
+    }
 }
 
 SocketWork_t* CppHttpHandler_t::getWork()

@@ -1,7 +1,7 @@
 Source: threadserver
 Priority: extra
 Maintainer: Eduard Veleba <veleba@novalighting.cz>
-Build-Depends: debhelper (>= 7), autotools-dev
+Build-Depends: debhelper (>= 7), autotools-dev, libmimetic-dev
 Standards-Version: 3.7.3
 Section: libs
 
