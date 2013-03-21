@@ -111,16 +111,6 @@ ThreadServer_t::~ThreadServer_t()
     }
 
     for (;;) {
-        HandlerMap_t::iterator ihandlerMap(handlerMap.begin());
-        if (ihandlerMap == handlerMap.end()) {
-            break;
-        }
-
-        delete ihandlerMap->second;
-        handlerMap.erase(ihandlerMap);
-    }
-
-    for (;;) {
         std::set<void*>::iterator ihandlerHandleSet(handlerHandleSet.begin());
         if (ihandlerHandleSet == handlerHandleSet.end()) {
             break;
@@ -304,6 +294,16 @@ void ThreadServer_t::stop()
             ilistenerMap->second->getHandlerName().c_str());
 
         ilistenerMap->second->stop();
+    }
+
+    for (;;) {
+        HandlerMap_t::iterator ihandlerMap(handlerMap.begin());
+        if (ihandlerMap == handlerMap.end()) {
+            break;
+        }
+
+        delete ihandlerMap->second;
+        handlerMap.erase(ihandlerMap);
     }
 
     work.reset(0);

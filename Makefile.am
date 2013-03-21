@@ -5,5 +5,7 @@ SUBDIRS = \
     src/handlers/cppfrpchandler \
     src/handlers/cppfrpchandler/testmodule \
     src/handlers/cpphttphandler \
-    src/handlers/cpphttphandler/testmodule
+    src/handlers/cpphttphandler/testmodule \
+    src/handlers/pythonhandler \
+    src/handlers/pyhttphandler
 

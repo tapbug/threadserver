@@ -14,16 +14,22 @@ Handler_t::Handler_t(ThreadServer_t *threadServer,
     name(name),
     workerCount(workerCount),
     workerPool(),
-    mutex(),
-    waitingCond(),
-    notWaitingCond(),
-    waiting(true),
-    exiting(false)
+    workQueue()
 {
 }
 
 Handler_t::~Handler_t()
 {
+}
+
+std::string Handler_t::getName() const
+{
+    return name;
+}
+
+void Handler_t::enqueue(boost::shared_ptr<SocketWork_t> socket)
+{
+    workQueue.enqueue(socket);
 }
 
 void Handler_t::createWorkers()
@@ -35,11 +41,7 @@ void Handler_t::createWorkers()
 
 void Handler_t::destroyWorkers()
 {
-    {
-        boost::mutex::scoped_lock lock(mutex);
-        exiting = true;
-        waitingCond.notify_all();
-    }
+    workQueue.finish();
 
     for (WorkerPool_t::iterator iworkerPool(workerPool.begin()) ;
          iworkerPool != workerPool.end() ;
@@ -50,22 +52,6 @@ void Handler_t::destroyWorkers()
     }
 
     workerPool.clear();
-}
-
-std::string Handler_t::getName() const
-{
-    return name;
-}
-
-void Handler_t::enque(boost::shared_ptr<SocketWork_t> socket)
-{
-    boost::mutex::scoped_lock lock(mutex);
-    while (!waiting) {
-        notWaitingCond.wait(lock);
-    }
-    workQueue.push(socket);
-    waiting = false;
-    waitingCond.notify_one();
 }
 
 void Handler_t::run()
@@ -91,26 +77,13 @@ Handler_t::Worker_t::~Worker_t()
 void Handler_t::Worker_t::run()
 {
     for (;;) {
-        boost::shared_ptr<SocketWork_t> socket;
-        {
-            boost::mutex::scoped_lock lock(handler->mutex);
-            while (handler->waiting && !handler->exiting) {
-                handler->waitingCond.wait(lock);
-            }
-            if (!handler->exiting) {
-                socket = handler->workQueue.front();
-                handler->workQueue.pop();
-                handler->waiting = true;
-                handler->notWaitingCond.notify_one();
-            }
-        }
-
-        if (handler->exiting) {
+        boost::optional<boost::shared_ptr<SocketWork_t> > socket(handler->workQueue.dequeue());
+        if (!socket) {
             break;
         }
 
         try {
-            handle(socket);
+            handle(*socket);
         } catch (const boost::system::system_error &e) {
             if (e.code() == boost::system::posix_error::broken_pipe) {
                 LOG(ERR2, "Handler %s: Connection closed by foreign host",

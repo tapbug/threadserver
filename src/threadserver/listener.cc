@@ -132,7 +132,7 @@ void Listener_t::accept(boost::shared_ptr<SocketWork_t> socket,
     if (!error) {
         asyncAccept(ioService);
         socket->forbidden = isForbidden(socket);
-        handler->enque(socket);
+        handler->enqueue(socket);
     } else if (error != boost::system::posix_error::operation_canceled) {
         LOG(ERR3, "Listener on %s can't accept connection: %s",
             address.c_str(), boost::system::system_error(error).what());

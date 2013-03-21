@@ -1,7 +1,7 @@
 Source: threadserver
 Priority: extra
-Maintainer: Eduard Veleba <veleba@novalighting.cz>
-Build-Depends: debhelper (>= 7), autotools-dev, libmimetic-dev
+Maintainer: Eduard Veleba <eduard.veleba@emtc.cz>
+Build-Depends: debhelper (>= 7), autotools-dev, libmimetic-dev, libdbglog-dev, libjsoncpp-dev (>=0.5.0-1)
 Standards-Version: 3.7.3
 Section: libs
 
@@ -53,3 +53,17 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Thread Server C++ HTTP handler
  Thread Server C++ HTTP handler
+
+Package: libthreadserver1-handler-python
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python2.6
+Description: Thread Server Python handler
+ Thread Server Python handler
+
+Package: libthreadserver1-handler-py-http
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python2.6
+Description: Thread Server Python HTTP handler
+ Thread Server Python HTTP handler

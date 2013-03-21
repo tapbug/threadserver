@@ -166,6 +166,11 @@ private:
 
     std::string loadHelp(const std::string &methodName) const;
 
+    time_t readTimeout;
+    time_t writeTimeout;
+    bool keepAlive;
+    time_t maxKeepAlive;
+    bool introspectionEnabled;
     DlHandleGuard_t moduleHandle;
     std::auto_ptr<Module_t> module;
     boost::thread_specific_ptr<Callbacks_t> callbacks;

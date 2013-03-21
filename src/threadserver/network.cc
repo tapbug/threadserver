@@ -20,8 +20,8 @@ Network_t Network_t::parse(const std::string &addressWithNetmask)
         netmask = address.substr(pos+1);
         address = address.substr(0, pos);
         if (netmask.size() <= 2) {
-            uint64_t netmaskAsInt(0x100000000);
-            netmaskAsInt -= (0x100000000 >> boost::lexical_cast<int>(netmask));
+            uint64_t netmaskAsInt(0x100000000llu);
+            netmaskAsInt -= (0x100000000llu >> boost::lexical_cast<int>(netmask));
             netmask = boost::lexical_cast<std::string>(netmaskAsInt >> 24) + "."
                 + boost::lexical_cast<std::string>((netmaskAsInt >> 16) & 0xff) + "."
                 + boost::lexical_cast<std::string>((netmaskAsInt >> 8) & 0xff) + "."

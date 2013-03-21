@@ -1,3 +1,98 @@
+threadserver (0.0.31) unstable; urgency=low
+
+  * Fixed possible memory leak
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Wed, 21 Nov 2012 11:03:49 +0100
+
+threadserver (0.0.30) unstable; urgency=low
+
+  * Bugfix in server shutdown (hanging workers)
+  * Added getBool to configuration
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Mon, 05 Nov 2012 00:37:04 +0100
+
+threadserver (0.0.29) unstable; urgency=low
+
+  * Bugfix in socket handling
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Sun, 04 Nov 2012 12:43:14 +0100
+
+threadserver (0.0.28) unstable; urgency=low
+
+  * Const methods in configuration
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Thu, 01 Nov 2012 15:37:40 +0100
+
+threadserver (0.0.27) unstable; urgency=low
+
+  * Added Params_t::getIndexed and MimeParams_t::getIndexedFiles
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Tue, 02 Oct 2012 11:46:45 +0200
+
+threadserver (0.0.26) unstable; urgency=low
+
+  * Fixed params for PUT method
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Wed, 19 Sep 2012 14:53:31 +0200
+
+threadserver (0.0.25) unstable; urgency=low
+
+  * Removed some forgotten debug logging
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Thu, 06 Sep 2012 10:41:05 +0200
+
+threadserver (0.0.24) unstable; urgency=low
+
+  * Added ReadTimeout, WriteTimeout, KeepAlive, MaxKeepAlive, IntrospectionEnabled to C++ FastRPC handler
+  * Added ReadTimeout, WriteTimeout, MaxLineSize to C++ HTTP handler
+  * Added ReadTimeout, WriteTimeout, MaxLineSize to Python HTTP handler
+
+ -- Eduard Veleba <eduard.veleba@emtc.cz>  Thu, 06 Sep 2012 10:00:53 +0200
+
+threadserver (0.0.23) unstable; urgency=low
+
+  * Added Python HTTP handler
+  * Removed subinterpreter from Python handler
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Wed, 05 Sep 2012 16:44:05 +0200
+
+threadserver (0.0.22) unstable; urgency=low
+
+  * Added Python handler
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Tue, 04 Sep 2012 18:28:06 +0200
+
+threadserver (0.0.21) unstable; urgency=low
+
+  * Added JSON decoding
+  * Added JsonRPCMethod_t
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Fri, 17 Aug 2012 20:13:45 +0200
+
+threadserver (0.0.20) unstable; urgency=low
+
+  * Fixed lexical_cast from string to string
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Mon, 06 Aug 2012 15:45:41 +0200
+
+threadserver (0.0.19) unstable; urgency=low
+
+  * Fixed lexical_cast from string to string
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Mon, 06 Aug 2012 10:47:11 +0200
+
+threadserver (0.0.18) unstable; urgency=low
+
+  * Improved lexical cast in Parameters_t::getFirst and Parameters_t::get
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Wed, 01 Aug 2012 11:58:56 +0200
+
+threadserver (0.0.17) unstable; urgency=low
+
+  * Added getBool to ThreadServer::CppHttpInterface_t::Parameters_t
+
+ -- Eduard Veleba <veleba@novalighting.cz>  Mon, 25 Jun 2012 14:18:36 +0200
+
 threadserver (0.0.16) unstable; urgency=low
 
   * Added ThreadServer::CppHttpInterface_t::JsonMethod2_t which supports

@@ -112,6 +112,10 @@ TEST_HEADER(boost/regex.hpp)
 TEST_LIB(boost_regex-mt, _ZN5boost14c_regex_traitsIcE5valueEci)
 
 AC_LANG_CPLUSPLUS
+TEST_HEADER(threading/threading.h)
+TEST_LIB(threading, libthreading_present)
+
+AC_LANG_CPLUSPLUS
 TEST_HEADER(frpc.h)
 TEST_LIB(fastrpc, _ZN4FRPC8Server_tD0Ev)
 
@@ -129,4 +133,6 @@ AC_OUTPUT( \
     src/handlers/cppfrpchandler/testmodule/Makefile
     src/handlers/cpphttphandler/Makefile
     src/handlers/cpphttphandler/testmodule/Makefile
+    src/handlers/pythonhandler/Makefile
+    src/handlers/pyhttphandler/Makefile
 )

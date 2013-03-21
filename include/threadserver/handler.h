@@ -8,6 +8,7 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
+#include <threading/threading.h>
 
 #include <threadserver/work.h>
 
@@ -28,7 +29,7 @@ public:
 
         virtual void run();
 
-    private:
+    protected:
         Handler_t *handler;
     };
 
@@ -42,7 +43,7 @@ public:
 
     virtual Worker_t* createWorker(Handler_t *handler) = 0;
 
-    void enque(boost::shared_ptr<SocketWork_t> socket);
+    void enqueue(boost::shared_ptr<SocketWork_t> socket);
 
 protected:
     void destroyWorkers();
@@ -61,12 +62,7 @@ public:
 private:
     size_t workerCount;
     WorkerPool_t workerPool;
-    std::queue<boost::shared_ptr<SocketWork_t> > workQueue;
-    boost::mutex mutex;
-    boost::condition_variable waitingCond;
-    boost::condition_variable notWaitingCond;
-    bool waiting;
-    bool exiting;
+    threading::queue<boost::shared_ptr<SocketWork_t> > workQueue;
 };
 
 } // namespace ThreadServer

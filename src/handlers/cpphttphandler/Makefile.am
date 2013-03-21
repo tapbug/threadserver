@@ -12,7 +12,8 @@ cpphttphandler_la_SOURCES = \
     json.cc
 
 cpphttphandler_la_LIBADD = \
-    -lthreadserver
+    -lthreadserver \
+    -ljson
 
 library_includedir = $(includedir)/threadserver/handlers/cpphttphandler
 

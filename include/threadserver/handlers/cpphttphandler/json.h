@@ -6,6 +6,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <jsoncpp/value.h>
+#include <threadserver/error.h>
 
 namespace ThreadServer {
 namespace JSON {
@@ -25,6 +27,8 @@ protected:
     Value_t();
 
 public:
+    virtual ~Value_t() = 0;
+
     virtual Type getType() const = 0;
 
     virtual bool isNull() const;
@@ -38,6 +42,8 @@ protected:
     Null_t();
 
 public:
+    virtual ~Null_t();
+
     virtual Type getType() const;
 
     virtual operator std::string() const;
@@ -49,6 +55,8 @@ protected:
     String_t(const std::string &data);
 
 public:
+    virtual ~String_t();
+
     virtual Type getType() const;
 
     virtual operator std::string() const;
@@ -65,6 +73,8 @@ protected:
     Int_t(const long long data);
 
 public:
+    virtual ~Int_t();
+
     virtual Type getType() const;
 
     virtual operator std::string() const;
@@ -79,6 +89,8 @@ protected:
     Double_t(const double data);
 
 public:
+    virtual ~Double_t();
+
     virtual Type getType() const;
 
     virtual operator std::string() const;
@@ -93,6 +105,8 @@ protected:
     Bool_t(const bool data);
 
 public:
+    virtual ~Bool_t();
+
     virtual Type getType() const;
 
     virtual operator std::string() const;
@@ -107,6 +121,8 @@ protected:
     Struct_t();
 
 public:
+    virtual ~Struct_t();
+
     virtual Type getType() const;
 
     virtual operator std::string() const;
@@ -123,6 +139,8 @@ protected:
     Array_t();
 
 public:
+    virtual ~Array_t();
+
     virtual Type getType() const;
 
     virtual operator std::string() const;
@@ -158,6 +176,13 @@ protected:
 
     Null_t null;
 };
+
+const std::string String(const Json::Value &value);
+const long long Int(const Json::Value &value);
+const double Double(const Json::Value &value);
+const bool Bool(const Json::Value &value);
+const Json::Value& Struct(const Json::Value &value);
+const Json::Value& Array(const Json::Value &value);
 
 } // namespace JSON
 } // namespace ThreadServer

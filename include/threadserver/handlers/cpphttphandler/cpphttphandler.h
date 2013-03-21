@@ -6,13 +6,76 @@
 #include <dbglog.h>
 #include <threadserver/error.h>
 #include <threadserver/handler.h>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread/tss.hpp>
 #include <frpchttp.h>
+#include <sstream>
+#include <stdexcept>
+#include <cxxabi.h>
+#include <jsoncpp/reader.h>
 
 #include "json.h"
+
+namespace {
+
+template<class T_t, class U_t>
+T_t lexical_cast(const U_t &value, const char *name = 0)
+{
+    class bad_cast : public std::bad_cast {
+    public:
+        bad_cast(const std::string &message)
+          : std::bad_cast(),
+            message(message)
+        {
+        }
+
+        virtual ~bad_cast() throw ()
+        {
+        }
+
+        virtual const char* what() const throw ()
+        {
+            return message.c_str();
+        }
+
+        const std::string message;
+    };
+
+    try {
+        return boost::lexical_cast<T_t>(value);
+    } catch (const std::bad_cast &e) {
+        int status;
+        char* valueType(abi::__cxa_demangle(
+            typeid(value).name(),
+            0,
+            0,
+            &status));
+
+        char* resultType(abi::__cxa_demangle(
+            typeid(T_t).name(),
+            0,
+            0,
+            &status));
+
+        if (name) {
+            throw bad_cast(
+                std::string("bad lexical cast: ")
+                + name + ": source type ("
+                + valueType + ") value could not be interpreted as target ("
+                + resultType + ")");
+        } else {
+            throw bad_cast(
+                std::string("bad lexical cast: source type (")
+                + valueType + ") value could not be interpreted as target ("
+                + resultType + ")");
+        }
+    }
+}
+
+} // namespace
 
 namespace ThreadServer {
 
@@ -105,7 +168,8 @@ public:
             if (idata == data.end()) {
                 return boost::optional<T_t>();
             } else {
-                return boost::optional<T_t>(boost::lexical_cast<T_t>(idata->second.front()));
+                return boost::optional<T_t>(lexical_cast<T_t>(
+                    idata->second.front(), name.c_str()));
             }
         }
 
@@ -121,11 +185,41 @@ public:
                      ilist != idata->second.end() ;
                      ++ilist) {
 
-                    result.push_back(boost::lexical_cast<T_t>(*ilist));
+                    result.push_back(lexical_cast<T_t>(
+                        *ilist, name.c_str()));
                 }
                 return result;
             }
         }
+
+        template<class T_t>
+        std::map<std::vector<size_t>, T_t> getIndexed(const std::string &name) const
+        {
+            std::map<std::vector<size_t>, T_t> result;
+            boost::regex regex(boost::algorithm::replace_all_copy(name, "[]", "\\[([0-9]+)\\]"));
+            for (Data_t::const_iterator idata(data.begin()) ;
+                 idata != data.end() ;
+                 ++idata) {
+
+                std::vector<size_t> indexes;
+                boost::cmatch matches;
+                if (!boost::regex_match(idata->first.c_str(), matches, regex)) {
+                    continue;
+                }
+
+                for (size_t i(1) ; i < matches.size() ; ++i) {
+                    indexes.push_back(boost::lexical_cast<size_t>(std::string(matches[i].first, matches[i].second)));
+                }
+
+                result.insert(std::make_pair(indexes, idata->second.front()));
+            }
+
+            return result;
+        }
+
+        bool getFirstBool(const std::string &name) const;
+
+        std::list<bool> getBool(const std::string &name) const;
 
     protected:
         int unhex(const char c);
@@ -153,6 +247,8 @@ public:
         void parseMime(const std::string &params);
 
         const std::vector<File_t>& getFiles(const std::string &name) const;
+
+        const std::map<std::vector<size_t>, const File_t&> getIndexedFiles(const std::string &name) const;
 
     protected:
         FileData_t fileData;
@@ -232,7 +328,7 @@ public:
                     params.parse(request.unparsedUri.substr(pos+1));
                 }
             }
-            if (request.method == "POST") {
+            if (request.method == "POST" || request.method == "PUT") {
                 params.parse(request.data);
             }
             try {
@@ -289,7 +385,7 @@ public:
                     params.parse(request.unparsedUri.substr(pos+1));
                 }
             }
-            if (request.method == "POST") {
+            if (request.method == "POST" || request.method == "PUT") {
                 if (request.contentType.find("multipart/form-data") == 0) {
                     params.parseMime("Content-Type: " + request.contentType + "\r\n\r\n" + request.data);
                 } else {
@@ -351,7 +447,7 @@ public:
                     params.parse(request.unparsedUri.substr(pos+1));
                 }
             }
-            if (request.method == "POST") {
+            if (request.method == "POST" || request.method == "PUT") {
                 params.parse(request.data);
             }
             response.contentType = "application/json; charset=utf-8";
@@ -421,7 +517,7 @@ public:
                     params.parse(request.unparsedUri.substr(pos+1));
                 }
             }
-            if (request.method == "POST") {
+            if (request.method == "POST" || request.method == "PUT") {
                 if (request.contentType.find("multipart/form-data") == 0) {
                     params.parseMime("Content-Type: " + request.contentType + "\r\n\r\n" + request.data);
                 } else {
@@ -462,6 +558,73 @@ public:
         return new JsonMethod2_t<Object_t>(object, handler);
     }
 
+    template<class Object_t>
+    class JsonRPCMethod_t : public Method_t {
+    public:
+        typedef JSON::Value_t& (Object_t::*Handler_t)(JSON::Pool_t &pool,
+                                                      const Request_t &request,
+                                                      Response_t &response,
+                                                      const Json::Value &data);
+
+        JsonRPCMethod_t(Object_t &object, Handler_t handler)
+          : Method_t(),
+            object(object),
+            handler(handler)
+        {
+        }
+
+        virtual ~JsonRPCMethod_t()
+        {
+        }
+
+        virtual void call(const Request_t &request, Response_t &response)
+        {
+            if (request.method != "POST") {
+                LOG(ERR2, "Method isn't POST for pure JSON method");
+                throw HttpError_t(405);
+            }
+
+            Json::Value value;
+            Json::Reader reader;
+            if (!reader.parse(request.data, value)) {
+                LOG(ERR2, "Couldn't parse JSON data '%s'", request.data.c_str());
+                throw HttpError_t(400);
+            }
+
+            response.contentType = "application/json; charset=utf-8";
+            JSON::Pool_t pool;
+            try {
+                JSON::Value_t &result((object.*handler)(pool, request, response, value));
+                response.data = std::string(result);
+                if (logCheckLevel(DBG1)) {
+                    if (response.debugLogInfo.empty()) {
+                        LOG(DBG1, "Response:\n%s\n",
+                            response.data.c_str());
+                    } else {
+                        LOG(DBG1, "[%s] Response:\n%s\n",
+                            response.debugLogInfo.c_str(), response.data.c_str());
+                    }
+                }
+            } catch (const HttpError_t &e) {
+                if (e.code() / 100 >= 4) {
+                    throw e;
+                } else {
+                    response.status = e.code();
+                }
+            }
+        }
+
+    private:
+        Object_t &object;
+        Handler_t handler;
+    };
+
+    template<class Object_t>
+    static JsonRPCMethod_t<Object_t>* jsonRPCMethod(typename JsonRPCMethod_t<Object_t>::Handler_t handler, Object_t &object)
+    {
+        return new JsonRPCMethod_t<Object_t>(object, handler);
+    }
+
     CppHttpHandler_t(ThreadServer_t *threadServer,
                      const std::string &name,
                      const size_t workerCount);
@@ -500,7 +663,10 @@ private:
     DlHandleGuard_t moduleHandle;
     std::auto_ptr<Module_t> module;
     boost::thread_specific_ptr<SocketWork_t> work;
-    int maxRequestSize;
+    time_t readTimeout;
+    time_t writeTimeout;
+    size_t maxLineSize;
+    size_t maxRequestSize;
     boost::thread_specific_ptr<std::list<std::pair<boost::regex, Method_t*> > > methodRegistry;
 };
 

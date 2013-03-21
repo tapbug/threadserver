@@ -10,6 +10,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/lambda/lambda.hpp>
 
 #include <threadserver/threadserver.h>
 #include <threadserver/error.h>
@@ -26,6 +27,9 @@ CppHttpHandler_t::CppHttpHandler_t(ThreadServer_t *threadServer,
     moduleHandle(0),
     module(0),
     work(0),
+    readTimeout(threadServer->configuration.get<time_t>(name + ".ReadTimeout", 10000)),
+    writeTimeout(threadServer->configuration.get<time_t>(name + ".WriteTimeout", 10000)),
+    maxLineSize(threadServer->configuration.get<size_t>(name + ".MaxLineSize", 1024)),
     maxRequestSize(threadServer->configuration.get<int>(name + ".MaxRequestSize", 1024*1024)),
     methodRegistry(0)
 {
@@ -114,7 +118,12 @@ void CppHttpHandler_t::Worker_t::handle(boost::shared_ptr<SocketWork_t> socket)
 
     handler->work.reset(socket.get());
     try {
-        HttpIo_t io(socket->getSocket()->native(), 10000, 10000, 1024, handler->maxRequestSize);
+        HttpIo_t io(
+            socket->getSocket()->native(),
+            handler->readTimeout,
+            handler->writeTimeout,
+            handler->maxLineSize,
+            handler->maxRequestSize);
 
         Request_t request;
 
@@ -401,7 +410,7 @@ CppHttpHandler_t::Response_t::Response_t(const CppHttpHandler_t::Request_t &requ
 void CppHttpHandler_t::loadModule(const std::string &filename,
                                   const std::string &symbol)
 {
-    moduleHandle.reset(dlopen(filename.c_str(), RTLD_LAZY | RTLD_LOCAL));
+    moduleHandle.reset(dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL));
     if (!moduleHandle.get()) {
         throw Error_t("Can't load module %s: %s",
             filename.c_str(), dlerror());
@@ -427,7 +436,12 @@ void CppHttpHandler_t::loadModule(const std::string &filename,
 
 void CppHttpHandler_t::forbidden(boost::shared_ptr<SocketWork_t> socket)
 {
-    HttpIo_t io(socket->getSocket()->native(), 10000, 10000, 1024, maxRequestSize);
+    HttpIo_t io(
+        socket->getSocket()->native(),
+        readTimeout,
+        writeTimeout,
+        maxLineSize,
+        maxRequestSize);
 
     try {
         std::string requestLine(io.readLine());
@@ -536,6 +550,21 @@ std::string CppHttpHandler_t::Parameters_t::unescape(const std::string &s)
     return result;
 }
 
+bool CppHttpHandler_t::Parameters_t::getFirstBool(const std::string &name) const
+{
+    boost::optional<std::string> data(getFirst<std::string>(name));
+    return data && (*data == "1" || *data == "true" || *data == "on");
+}
+
+std::list<bool> CppHttpHandler_t::Parameters_t::getBool(const std::string &name) const
+{
+    std::list<std::string> data(get<std::string>(name));
+    std::list<bool> result;
+    std::transform(data.begin(), data.end(), std::back_inserter(result),
+        boost::lambda::_1 == "1" || boost::lambda::_1 == "true" || boost::lambda::_1 == "on");
+    return result;
+}
+
 CppHttpHandler_t::MimeParameters_t::File_t::File_t()
   : data(),
     contentType(),
@@ -610,6 +639,31 @@ const std::vector<CppHttpHandler_t::MimeParameters_t::File_t>& CppHttpHandler_t:
     } else {
         return ifileData->second;
     }
+}
+
+const std::map<std::vector<size_t>, const CppHttpHandler_t::MimeParameters_t::File_t&>
+CppHttpHandler_t::MimeParameters_t::getIndexedFiles(const std::string &name) const
+{
+    std::map<std::vector<size_t>, const File_t&> result;
+    boost::regex regex(boost::algorithm::replace_all_copy(name, "[]", "\\[([0-9]+)\\]"));
+    for (FileData_t::const_iterator ifileData(fileData.begin()) ;
+         ifileData != fileData.end() ;
+         ++ifileData) {
+
+        std::vector<size_t> indexes;
+        boost::cmatch matches;
+        if (!boost::regex_match(ifileData->first.c_str(), matches, regex)) {
+            continue;
+        }
+
+        for (size_t i(1) ; i < matches.size() ; ++i) {
+            indexes.push_back(boost::lexical_cast<size_t>(std::string(matches[i].first, matches[i].second)));
+        }
+
+        result.insert(std::pair<std::vector<size_t>, const File_t&>(indexes, ifileData->second.front()));
+    }
+
+    return result;
 }
 
 SocketWork_t* CppHttpHandler_t::getWork()

@@ -8,20 +8,33 @@
 #include <threadserver/error.h>
 #include <threadserver/handlers/cppfrpchandler/cppfrpchandler.h>
 
+namespace {
+
+inline bool getBool(const std::string &s)
+{
+    return (s == "1" || s == "true" || s == "on");
+}
+
+} // namespace
+
 namespace ThreadServer {
 
 CppFrpcHandler_t::CppFrpcHandler_t(ThreadServer_t *threadServer,
                                    const std::string &name,
                                    const size_t workerCount)
   : Handler_t(threadServer, name, workerCount),
+    readTimeout(threadServer->configuration.get<time_t>(name + ".ReadTimeout", 10000)),
+    writeTimeout(threadServer->configuration.get<time_t>(name + ".WriteTimeout", 10000)),
+    keepAlive(getBool(threadServer->configuration.get<std::string>(name + ".KeepAlive", "true"))),
+    maxKeepAlive(threadServer->configuration.get<time_t>(name + ".MaxKeepAlive", 100)),
+    introspectionEnabled(getBool(threadServer->configuration.get<std::string>(name + ".IntrospectionEnabled", "true"))),
     moduleHandle(0),
     module(0),
     callbacks(0),
     frpcConfig(0),
     frpc(0),
     work(0),
-    helpDirectory(threadServer->configuration.get<std::string>(
-        name + ".HelpDirectory", ""))
+    helpDirectory(threadServer->configuration.get<std::string>(name + ".HelpDirectory", ""))
 {
     std::string module(threadServer->configuration.get<std::string>(name + ".Module"));
     size_t pos(module.find(":"));
@@ -53,7 +66,12 @@ CppFrpcHandler_t::Worker_t::Worker_t(CppFrpcHandler_t *handler)
     handler->callbacks.reset(new Callbacks_t());
 
     handler->frpcConfig.reset(new FRPC::Server_t::Config_t(
-        10000, 10000, true, 100, true, handler->callbacks.get()));
+        handler->readTimeout,
+        handler->writeTimeout,
+        handler->keepAlive,
+        handler->maxKeepAlive,
+        handler->introspectionEnabled,
+        handler->callbacks.get()));
 
     handler->frpc.reset(new FRPC::Server_t(*handler->frpcConfig));
 
